@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bella Intelligence — Centro de Operações</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        brand: {
+                            bg: '#050505', 
+                            surface: '#0f0f0f',
+                            card: '#141414',
+                            text: '#f9f9f9',
+                            muted: '#888888',
+                            accent: '#d4af37', 
+                            accentHover: '#f1d592',
+                            border: '#222222',
+                            glow: 'rgba(212, 175, 55, 0.12)'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        html { scroll-behavior: smooth; }
+        body {
+            background-color: #050505;
+            color: #f9f9f9;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .gold-gradient {
+            background: linear-gradient(135deg, #d4af37 0%, #f1d592 50%, #b8962e 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .glass-panel {
+            backdrop-filter: blur(12px);
+            background: rgba(15, 15, 15, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .gold-border-glow {
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .gold-border-glow:hover {
+            border-color: rgba(212, 175, 55, 0.6);
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .emergency-glow {
+            box-shadow: 0 0 50px rgba(212, 175, 55, 0.08);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .prompt-card {
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .sticky-nav {
+            backdrop-filter: blur(20px);
+            background: rgba(5, 5, 5, 0.8);
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 550px;
+            margin: auto;
+            height: 380px;
+        }
+
+        .variable-highlight {
+            color: #d4af37;
+            font-weight: 700;
+            background: rgba(212, 175, 55, 0.1);
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #050505; }
+        ::-webkit-scrollbar-thumb { background: #222222; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #d4af37; }
+
+        .category-tag {
+            font-size: 8px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: rgba(212, 175, 55, 0.08);
+            color: #d4af37;
+            font-weight: 700;
+            border: 1px solid rgba(212, 175, 55, 0.15);
+        }
+
+        @keyframes soft-pulse {
+            0%, 100% { opacity: 0.7; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+        .pulse-icon {
+            animation: soft-pulse 3s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased">
+
+    <!-- Chosen Palette: Obsidian, Graphite & Burnished Gold -->
+    <!-- Application Structure Plan: 
+         - Architecture: Strategic Dashboard (Landing Page style).
+         - UX Focus: Minimal friction for prompt copying and situational analysis.
+         - Logic: Vision -> Method -> Dynamic Library -> Governance.
+         - Feature: Variables in prompts ([X], [Y]) are visually highlighted to speed up the operator's fill-in time.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. -->
+
+    <!-- Header Navigation -->
+    <header class="sticky top-0 w-full sticky-nav border-b border-brand-border z-50">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 border border-brand-accent/40 rounded-full flex items-center justify-center text-brand-accent font-serif font-bold text-xl shadow-[0_0_20px_rgba(212,175,55,0.1)]">B</div>
+                <div class="hidden sm:block">
+                    <h1 class="text-xs font-bold tracking-[0.2em] text-brand-text">BELLA INTELLIGENCE</h1>
+                    <p class="text-[8px] text-brand-accent uppercase font-semibold leading-none tracking-[0.1em] mt-1">Intelligence Operations Dashboard</p>
+                </div>
+            </div>
+            <nav class="flex gap-8 md:gap-12">
+                <a href="#visao" class="text-[10px] font-bold uppercase tracking-widest text-brand-muted hover:text-brand-accent transition-colors">Infraestrutura</a>
+                <a href="#metodo" class="text-[10px] font-bold uppercase tracking-widest text-brand-muted hover:text-brand-accent transition-colors">Metodologia</a>
+                <a href="#cenarios" class="text-[10px] font-bold uppercase tracking-widest text-brand-accent hover:brightness-125 transition-all underline underline-offset-8 decoration-2 decoration-brand-accent/30">Prompts</a>
+                <a href="#governanca" class="text-[10px] font-bold uppercase tracking-widest text-brand-muted hover:text-brand-accent transition-colors">Governança</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <!-- SECTION 1: OPERATIONAL VISION -->
+        <section id="visao" class="relative py-28 px-6 max-w-7xl mx-auto overflow-hidden">
+            <div class="absolute -top-24 -left-24 w-96 h-96 bg-brand-accent/5 blur-[120px] rounded-full"></div>
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center relative z-10">
+                <div class="lg:col-span-7 space-y-12">
+                    <div class="inline-flex items-center gap-3 px-4 py-1.5 bg-brand-accent/5 border border-brand-accent/10 rounded-full text-brand-accent text-[9px] font-bold tracking-[0.25em] uppercase">
+                        <span class="w-1.5 h-1.5 bg-brand-accent rounded-full pulse-icon"></span> Sistema de Apoio à Decisão (DSS)
+                    </div>
+                    <h2 class="text-6xl md:text-8xl font-serif leading-[1.05] font-bold tracking-tight">
+                        Arquitetura de <br><span class="gold-gradient italic">Inteligência</span>
+                    </h2>
+                    <p class="text-xl text-brand-muted leading-relaxed max-w-2xl font-light">
+                        Este Hub constitui a base técnica da Bella Intelligence. Ele padroniza o workflow organizacional para converter desafios operacionais em resultados escaláveis através de processos estruturados de IA.
+                    </p>
+                    <div class="flex flex-wrap gap-12 py-4">
+                        <div class="flex flex-col border-l border-brand-accent/30 pl-8">
+                            <span class="text-4xl font-serif font-bold gold-gradient">10x</span>
+                            <span class="text-[9px] text-brand-muted uppercase tracking-[0.2em] font-bold mt-3">Eficiência Operacional</span>
+                        </div>
+                        <div class="flex flex-col border-l border-brand-accent/30 pl-8">
+                            <span class="text-4xl font-serif font-bold gold-gradient">100%</span>
+                            <span class="text-[9px] text-brand-muted uppercase tracking-[0.2em] font-bold mt-3">Rigor Analítico</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="lg:col-span-5 hidden lg:block">
+                    <div class="glass-panel p-10 rounded-[48px] border border-white/5 relative z-10 gold-border-glow shadow-2xl">
+                        <div class="text-brand-accent text-5xl mb-8 opacity-80">⚙️</div>
+                        <h3 class="text-2xl font-serif mb-6 italic tracking-tight">Framework Técnico</h3>
+                        <p class="text-brand-muted text-sm leading-relaxed mb-8 font-light">
+                            "A IA atua como uma camada de infraestrutura tática. A padronização via Protocolo Bella garante a consistência e a segurança das entregas organizacionais."
+                        </p>
+                        <div class="h-px bg-white/5 w-full mb-8"></div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-brand-accent/80">Protocolo DSS v3.0</span>
+                            <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-brand-muted">Internal Use Only</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: METHODOLOGY -->
+        <section id="metodo" class="py-28 px-6 bg-brand-surface/30 border-y border-brand-border">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex flex-col md:flex-row justify-between items-end gap-8 mb-24">
+                    <div class="max-w-2xl space-y-6">
+                        <h2 class="text-4xl font-serif tracking-tight">A Metodologia <span class="text-brand-accent italic">A.P.E.O.</span></h2>
+                        <p class="text-brand-muted text-lg font-light leading-relaxed">O processo técnico de quatro estágios para garantir a precisão nas respostas e a viabilidade dos planos de ação.</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[9px] font-bold uppercase tracking-[0.3em] text-brand-accent/60 mb-2">Padrão de Processamento</p>
+                        <p class="text-xs italic text-brand-muted">Workflow Analítico Consistente</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div class="p-10 rounded-[32px] bg-brand-card/50 border border-brand-border hover:bg-black hover:border-brand-accent/30 transition-all duration-500 group">
+                        <div class="w-14 h-14 rounded-2xl bg-zinc-900 border border-white/5 flex items-center justify-center text-2xl mb-10 group-hover:scale-110 transition-transform">🔍</div>
+                        <h3 class="text-xl font-bold mb-4 tracking-tight">Analisar</h3>
+                        <p class="text-sm text-brand-muted leading-relaxed font-light">Diagnóstico de variáveis, coleta de parâmetros e identificação de gargalos sistêmicos.</p>
+                    </div>
+                    <div class="p-10 rounded-[32px] bg-brand-card/50 border border-brand-border hover:bg-black hover:border-brand-accent/30 transition-all duration-500 group">
+                        <div class="w-14 h-14 rounded-2xl bg-zinc-900 border border-white/5 flex items-center justify-center text-2xl mb-10 group-hover:scale-110 transition-transform">🧭</div>
+                        <h3 class="text-xl font-bold mb-4 tracking-tight">Planejar</h3>
+                        <p class="text-sm text-brand-muted leading-relaxed font-light">Desenho de arquitetura estratégica, cronogramas e alocação técnica de recursos.</p>
+                    </div>
+                    <div class="p-10 rounded-[32px] bg-brand-card/50 border border-brand-border hover:bg-black hover:border-brand-accent/30 transition-all duration-500 group">
+                        <div class="w-14 h-14 rounded-2xl bg-zinc-900 border border-white/5 flex items-center justify-center text-2xl mb-10 group-hover:scale-110 transition-transform">🛠️</div>
+                        <h3 class="text-xl font-bold mb-4 tracking-tight">Executar</h3>
+                        <p class="text-sm text-brand-muted leading-relaxed font-light">Implementação tática e produção de ativos conforme as especificações do projeto.</p>
+                    </div>
+                    <div class="p-10 rounded-[32px] bg-brand-card/50 border border-brand-border hover:bg-black hover:border-brand-accent/30 transition-all duration-500 group">
+                        <div class="w-14 h-14 rounded-2xl bg-zinc-900 border border-white/5 flex items-center justify-center text-2xl mb-10 group-hover:scale-110 transition-transform">📈</div>
+                        <h3 class="text-xl font-bold mb-4 tracking-tight">Otimizar</h3>
+                        <p class="text-sm text-brand-muted leading-relaxed font-light">Monitoramento de KPIs e ajustes técnicos para garantir a evolução da performance.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: PROMPT LIBRARY -->
+        <section id="cenarios" class="py-28 px-6 max-w-7xl mx-auto">
+            <div class="text-center mb-20 space-y-8">
+                <div class="inline-block px-5 py-1.5 border border-brand-accent/40 rounded-full text-brand-accent text-[10px] font-bold uppercase tracking-[0.4em]">
+                    Prompts Estruturados
+                </div>
+                <h2 class="text-5xl md:text-7xl font-serif italic tracking-tight">Comandos <span class="gold-gradient">Operacionais</span></h2>
+                <p class="text-xl text-brand-muted max-w-3xl mx-auto font-light leading-relaxed">
+                    Abaixo estão os comandos táticos prontos para execução imediata. Copie, preencha as variáveis destacadas e aplique ao workflow correspondente.
+                </p>
+            </div>
+
+            <!-- Toolbar -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
+                <div class="lg:col-span-8 relative">
+                    <input type="text" id="promptSearch" placeholder="Busque por situação ou categoria técnica..." class="w-full bg-brand-surface border-2 border-brand-border rounded-3xl px-8 py-6 pl-20 text-lg focus:border-brand-accent/60 outline-none transition-all placeholder:text-zinc-700 shadow-xl">
+                    <span class="absolute left-8 top-1/2 -translate-y-1/2 text-3xl opacity-40 text-brand-accent">⚡</span>
+                </div>
+                <div class="lg:col-span-4 bg-zinc-900/50 border border-white/5 rounded-3xl p-6 flex items-center justify-between px-10 glass-panel">
+                    <div>
+                        <p class="text-[10px] font-bold uppercase tracking-[0.25em] text-brand-muted">Repositório</p>
+                        <p class="text-3xl font-bold leading-none mt-2">10 Comandos</p>
+                    </div>
+                    <div class="text-4xl opacity-50">🗄️</div>
+                </div>
+            </div>
+
+            <!-- Contingency Protocol -->
+            <div class="mb-24 bg-brand-surface border border-brand-accent/10 emergency-glow p-10 rounded-[56px] overflow-hidden relative group">
+                <div class="absolute right-0 top-0 opacity-[0.03] text-[240px] -rotate-12 translate-x-24 translate-y-6 select-none pointer-events-none text-brand-accent">⚠️</div>
+                <div class="relative z-10">
+                    <div class="flex items-center gap-6 mb-12">
+                        <div class="w-14 h-14 bg-brand-accent rounded-[20px] flex items-center justify-center pulse-icon shadow-[0_0_30px_rgba(212,175,55,0.3)]">
+                            <span class="text-2xl text-brand-bg">🚑</span>
+                        </div>
+                        <div>
+                            <h3 class="text-3xl font-bold tracking-tight gold-gradient uppercase">Protocolo de Contingência Operacional</h3>
+                            <p class="text-[10px] text-brand-accent font-bold tracking-[0.4em] uppercase opacity-60 mt-1">Suporte tático para paralisia de fluxo ou decisão</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <button onclick="copyRaw('Qual é a ação prioritária imediata para otimizar os KPIs de performance?')" class="group/btn text-left p-6 bg-brand-bg/40 border border-white/5 rounded-3xl text-[14px] hover:border-brand-accent/40 transition-all italic text-brand-muted hover:text-brand-text flex flex-col justify-between h-full hover:bg-brand-accent/5">
+                            <span class="leading-relaxed">"Qual é a ação prioritária imediata para otimizar os KPIs de performance?"</span>
+                            <span class="text-[9px] uppercase font-bold tracking-[0.2em] text-brand-accent mt-6 opacity-0 group-hover/btn:opacity-100 transition-all translate-y-2 group-hover/btn:translate-y-0">Copiar Prompt</span>
+                        </button>
+                        <button onclick="copyRaw('Realize uma auditoria lógica para identificar ineficiências financeiras ou operacionais ocultas.')" class="group/btn text-left p-6 bg-brand-bg/40 border border-white/5 rounded-3xl text-[14px] hover:border-brand-accent/40 transition-all italic text-brand-muted hover:text-brand-text flex flex-col justify-between h-full hover:bg-brand-accent/5">
+                            <span class="leading-relaxed">"Realize uma auditoria lógica para identificar ineficiências financeiras ou operacionais ocultas."</span>
+                            <span class="text-[9px] uppercase font-bold tracking-[0.2em] text-brand-accent mt-6 opacity-0 group-hover/btn:opacity-100 transition-all translate-y-2 group-hover/btn:translate-y-0">Copiar Prompt</span>
+                        </button>
+                        <button onclick="copyRaw('Identifique potenciais falhas sistêmicas na estratégia atual com base em benchmarks de mercado.')" class="group/btn text-left p-6 bg-brand-bg/40 border border-white/5 rounded-3xl text-[14px] hover:border-brand-accent/40 transition-all italic text-brand-muted hover:text-brand-text flex flex-col justify-between h-full hover:bg-brand-accent/5">
+                            <span class="leading-relaxed">"Identifique potenciais falhas sistêmicas na estratégia atual com base em benchmarks de mercado."</span>
+                            <span class="text-[9px] uppercase font-bold tracking-[0.2em] text-brand-accent mt-6 opacity-0 group-hover/btn:opacity-100 transition-all translate-y-2 group-hover/btn:translate-y-0">Copiar Prompt</span>
+                        </button>
+                        <button onclick="copyRaw('Simule a abordagem tática de grandes corporações para este desafio específico.')" class="group/btn text-left p-6 bg-brand-bg/40 border border-white/5 rounded-3xl text-[14px] hover:border-brand-accent/40 transition-all italic text-brand-muted hover:text-brand-text flex flex-col justify-between h-full hover:bg-brand-accent/5">
+                            <span class="leading-relaxed">"Simule a abordagem tática de grandes corporações para este desafio específico."</span>
+                            <span class="text-[9px] uppercase font-bold tracking-[0.2em] text-brand-accent mt-6 opacity-0 group-hover/btn:opacity-100 transition-all translate-y-2 group-hover/btn:translate-y-0">Copiar Prompt</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Categories -->
+            <div class="flex flex-wrap gap-4 mb-16">
+                <button onclick="renderCommands('')" class="px-8 py-2.5 rounded-full border border-brand-accent bg-brand-accent text-brand-bg text-[10px] font-bold uppercase tracking-widest transition-all">Todos</button>
+                <button onclick="renderCommands('Comercial')" class="px-8 py-2.5 rounded-full border border-white/10 text-brand-muted text-[10px] font-bold uppercase tracking-widest hover:border-brand-accent/40 hover:text-brand-text transition-all">Comercial</button>
+                <button onclick="renderCommands('Marketing')" class="px-8 py-2.5 rounded-full border border-white/10 text-brand-muted text-[10px] font-bold uppercase tracking-widest hover:border-brand-accent/40 hover:text-brand-text transition-all">Marketing</button>
+                <button onclick="renderCommands('Estratégia')" class="px-8 py-2.5 rounded-full border border-white/10 text-brand-muted text-[10px] font-bold uppercase tracking-widest hover:border-brand-accent/40 hover:text-brand-text transition-all">Estratégia</button>
+                <button onclick="renderCommands('Operações')" class="px-8 py-2.5 rounded-full border border-white/10 text-brand-muted text-[10px] font-bold uppercase tracking-widest hover:border-brand-accent/40 hover:text-brand-text transition-all">Operações</button>
+            </div>
+
+            <div id="commandsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <!-- JS Inject -->
+            </div>
+        </section>
+
+        <!-- SECTION 4: GOVERNANCE -->
+        <section id="governanca" class="py-28 px-6 bg-[#030303] overflow-hidden">
+            <div class="max-w-7xl mx-auto">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
+                    <div class="space-y-16">
+                        <div class="space-y-6">
+                            <h2 class="text-5xl font-serif tracking-tight">Governança & <br><span class="text-brand-accent">Conformidade</span></h2>
+                            <p class="text-brand-muted text-lg font-light leading-relaxed">A padronização dos processos garante a consistência e o rigor técnico exigido pela Bella Intelligence. Estas são as diretrizes para a integridade do uso da IA.</p>
+                        </div>
+
+                        <div class="space-y-8">
+                            <div class="p-8 bg-brand-surface rounded-3xl border-l-4 border-l-brand-accent border-white/5 glass-panel">
+                                <h4 class="font-bold text-[10px] mb-3 uppercase tracking-[0.3em] text-brand-accent">Padrão de Qualidade</h4>
+                                <p class="text-brand-muted text-sm italic leading-relaxed">"Toda decisão com impacto em receita ou marca deve ser validada por modelagem analítica estruturada."</p>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <div class="bg-brand-surface p-8 rounded-3xl border border-white/5">
+                                    <h5 class="font-bold text-[9px] uppercase tracking-[0.2em] text-brand-accent/70 mb-4">Escalabilidade</h5>
+                                    <p class="text-[11px] text-brand-muted leading-relaxed font-light">A capacidade produtiva deve crescer exponencialmente através da automação inteligente de fluxos.</p>
+                                </div>
+                                <div class="bg-brand-surface p-8 rounded-3xl border border-white/5">
+                                    <h5 class="font-bold text-[9px] uppercase tracking-[0.2em] text-brand-accent/70 mb-4">Redução de Erro</h5>
+                                    <p class="text-[11px] text-brand-muted leading-relaxed font-light">A aplicação do framework A.P.E.O. deve mitigar falhas de planejamento técnico ad-hoc.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-brand-surface p-14 rounded-[64px] border border-white/5 shadow-2xl relative overflow-hidden glass-panel">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-brand-accent/5 blur-[60px] rounded-full"></div>
+                        <h3 class="font-bold text-center text-[10px] uppercase tracking-[0.4em] mb-16 text-brand-muted">Radar de Maturidade de Implementação</h3>
+                        <div class="chart-container">
+                            <canvas id="radarImpact"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="py-32 px-6 border-t border-brand-border text-center">
+            <div class="max-w-2xl mx-auto space-y-12">
+                <div class="w-16 h-16 border border-brand-accent/20 rounded-full mx-auto flex items-center justify-center text-brand-accent/40 text-2xl font-serif">B</div>
+                <h3 class="text-4xl font-serif italic gold-gradient tracking-tight">Consistência Operacional.</h3>
+                <p class="text-brand-muted text-sm font-light leading-relaxed max-w-sm mx-auto">
+                    Documento de uso interno para padronização de fluxos inteligentes. Sujeito às políticas de conformidade técnica.
+                </p>
+                <div class="pt-12 border-t border-white/5 text-[9px] uppercase tracking-[0.6em] text-brand-muted opacity-40">
+                    Strategic Assets © 2026
+                </div>
+            </div>
+        </footer>
+    </main>
+
+    <!-- Notification -->
+    <div id="toast" class="fixed bottom-12 left-1/2 -translate-x-1/2 glass-panel border border-brand-accent/30 text-brand-accent px-10 py-5 rounded-full font-bold text-xs shadow-2xl opacity-0 translate-y-10 transition-all duration-500 pointer-events-none z-[60] flex items-center gap-3">
+        <span class="text-lg">📋</span> COMANDO OPERACIONAL COPIADO
+    </div>
+
+    <script>
+        const scenarios = [
+            { id: 1, category: "Comercial", stage: "Executar", title: "Gestão de Estoque", situation: "Identificação de ineficiência no giro de SKUs específicos.", action: "Protocolo de aceleração de giro baseado em margem.", prompt: "Tenho um produto parado [X]. Margem [Y]. Canal [Z]. Sob a tese de giro rápido, crie 5 estratégias imediatas de venda agressiva que protejam a percepção premium da marca.", icon: "📦" },
+            { id: 2, category: "Estratégia", stage: "Planejar", title: "Robustez de Mercado", situation: "Análise competitiva e projeção de autoridade estrutural.", action: "Engenharia de percepção baseada em ativos reais.", prompt: "Como podemos utilizar nossos bastidores e infraestrutura atual para projetar uma autoridade superior à dos concorrentes [A e B] no mercado de [Setor] usando conteúdo?", icon: "📊" },
+            { id: 3, category: "Marketing", stage: "Analisar", title: "Auditoria de Retenção", situation: "Métricas de engajamento abaixo do benchmark de setor.", action: "Diagnóstico técnico de hooks e pontos de fuga.", prompt: "Analise o script desse vídeo e identifique os pontos de abandono prováveis. Sugira 3 novos ganchos de abertura de alta retenção.", icon: "📉" },
+            { id: 4, category: "Estratégia", stage: "Otimizar", title: "Recuperação de KPI", situation: "Desvio negativo em metas de faturamento mensal.", action: "Plano de mitigação e identificação de causa-raiz.", prompt: "Tivemos queda de vendas de [X]%. Analise os canais [A, B, C] e liste possíveis causas externas e internas, seguidas de um plano de choque para os próximos 7 dias.", icon: "🔻" },
+            { id: 5, category: "Operações", stage: "Executar", title: "Processamento de Vendas", situation: "Gargalos de fluxo no pipeline comercial.", action: "Padronização de rotinas e checklists de produtividade.", prompt: "Estruture uma rotina semanal minuto-a-minuto para uma equipe comercial com foco em outbound, priorizando produtividade e energia de venda.", icon: "🧭" },
+            { id: 6, category: "Comercial", stage: "Planejar", title: "Arquitetura B2B", situation: "Protocolo de entrada em novos clusters de atacado.", action: "Desenho de comunicação técnica para compradores.", prompt: "Crie um plano de lançamento para o produto [X] com foco exclusivo em compradores de atacado, destacando margem e giro para o lojista.", icon: "🚀" },
+            { id: 7, category: "Comercial", stage: "Otimizar", title: "LTV de Distribuição", situation: "Análise de churn e frequência em canais indiretos.", action: "Sistemas de incentivo para retenção de parceiros.", prompt: "Crie 5 estratégias de incentivo para aumentar o volume de recompra dos nossos 20 maiores distribuidores sem sacrificar margem líquida.", icon: "🤝" },
+            { id: 8, category: "Marketing", stage: "Analisar", title: "Modelagem de Oferta", situation: "Necessidade de diversificação de ângulos comerciais.", action: "Extração de dores e oportunidades de mercado.", prompt: "Gere 20 ideias de ganchos de venda fora do óbvio para o produto [X], focando em dores que o mercado ignora.", icon: "💡" },
+            { id: 9, category: "Estratégia", stage: "Planejar", title: "Viabilidade de Canal", situation: "Análise de ROI para novos canais de distribuição.", action: "Simulação de matriz de risco e oportunidade.", prompt: "Se decidirmos entrar no canal de vendas [X], quais são os 3 maiores riscos de marca e as 3 maiores oportunidades de lucro rápido? Simule cenários.", icon: "🧪" },
+            { id: 10, category: "Estratégia", stage: "Executar", title: "Plano de Ativação", situation: "Necessidade de implementação de projeto em curto prazo.", action: "Sprint tática de 7 dias com foco em deploys.", prompt: "Monte um plano de ação tático pronto para atingir [objetivo] nos próximos 7 dias. Foque em ações práticas e remova burocracia.", icon: "⏱️" }
+        ];
+
+        function highlightVariables(text) {
+            return text.replace(/\[(.*?)\]/g, '<span class="variable-highlight">[$1]</span>');
+        }
+
+        function renderCommands(categoryFilter = "", searchFilter = "") {
+            const grid = document.getElementById('commandsGrid');
+            grid.innerHTML = "";
+            
+            const filtered = scenarios.filter(s => {
+                const matchesCategory = categoryFilter === "" || s.category === categoryFilter;
+                const matchesSearch = s.title.toLowerCase().includes(searchFilter.toLowerCase()) || 
+                                    s.situation.toLowerCase().includes(searchFilter.toLowerCase());
+                return matchesCategory && matchesSearch;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-20 text-center text-brand-muted opacity-50 italic">Nenhum comando operacional encontrado.</div>`;
+                return;
+            }
+
+            filtered.forEach(s => {
+                const card = document.createElement('div');
+                card.className = "prompt-card bg-brand-surface border border-white/5 p-10 rounded-[48px] gold-border-glow flex flex-col justify-between glass-panel";
+                card.innerHTML = `
+                    <div class="space-y-6">
+                        <div class="flex justify-between items-start">
+                            <div class="flex items-center gap-4">
+                                <span class="text-4xl opacity-80">${s.icon}</span>
+                                <div>
+                                    <h4 class="font-bold text-xl leading-tight tracking-tight">${s.title}</h4>
+                                    <p class="text-[9px] text-brand-accent uppercase font-bold tracking-[0.25em] mt-1.5 opacity-80">${s.stage}</p>
+                                </div>
+                            </div>
+                            <span class="category-tag">${s.category}</span>
+                        </div>
+                        <div class="space-y-3">
+                            <p class="text-[9px] text-zinc-600 uppercase font-bold tracking-[0.2em]">Contexto Operacional:</p>
+                            <p class="text-sm text-brand-muted leading-relaxed font-light">${s.situation}</p>
+                        </div>
+                        <div class="bg-black/60 p-8 rounded-3xl border border-white/5 relative group/prompt transition-all hover:bg-black">
+                            <div class="absolute top-4 right-6 opacity-0 group-hover/prompt:opacity-100 transition-opacity">
+                                <span class="text-[9px] text-brand-accent font-bold uppercase tracking-[0.2em]">Copy</span>
+                            </div>
+                            <p class="text-[9px] text-brand-accent/60 uppercase font-bold mb-4 tracking-[0.25em]">Estrutura de Entrada:</p>
+                            <p class="text-[15px] italic text-brand-text leading-relaxed cursor-pointer font-light" onclick="copyRaw('${s.prompt.replace(/'/g, "\\'")}')">${highlightVariables(`"${s.prompt}"`)}</p>
+                        </div>
+                    </div>
+                    <button onclick="copyRaw('${s.prompt.replace(/'/g, "\\'")}')" class="mt-10 w-full py-5 bg-brand-card border border-white/5 text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-brand-accent hover:text-brand-bg transition-all duration-300 rounded-[20px] shadow-lg">
+                        Copiar Comando Tático
+                    </button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        document.getElementById('promptSearch').addEventListener('input', (e) => {
+            renderCommands("", e.target.value);
+        });
+
+        function copyRaw(text) {
+            const temp = document.createElement("textarea");
+            document.body.appendChild(temp);
+            temp.value = text;
+            temp.select();
+            document.execCommand('copy');
+            document.body.removeChild(temp);
+
+            const toast = document.getElementById('toast');
+            toast.classList.remove('opacity-0', 'translate-y-10');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-10');
+                toast.classList.remove('opacity-100', 'translate-y-0');
+            }, 3000);
+        }
+
+        function initRadar() {
+            const ctx = document.getElementById('radarImpact').getContext('2d');
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Precisão Decisória', 'Velocidade de Deploy', 'Qualidade de Plano', 'Rigidez Analítica', 'Escalabilidade'],
+                    datasets: [
+                        {
+                            label: 'Ad-hoc',
+                            data: [25, 30, 20, 40, 30],
+                            borderColor: 'rgba(255, 255, 255, 0.1)',
+                            backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                            pointBackgroundColor: 'rgba(255, 255, 255, 0.2)',
+                            borderWidth: 1.5,
+                            pointRadius: 0
+                        },
+                        {
+                            label: 'Padronizada',
+                            data: [95, 100, 95, 90, 100],
+                            borderColor: '#d4af37',
+                            backgroundColor: 'rgba(212, 175, 55, 0.15)',
+                            pointBackgroundColor: '#d4af37',
+                            borderWidth: 2.5,
+                            pointRadius: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(255, 255, 255, 0.05)' },
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            pointLabels: { color: '#666666', font: { size: 10, weight: '600', family: 'Inter' } },
+                            ticks: { display: false, stepSize: 20 },
+                            min: 0,
+                            max: 100
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        window.onload = () => {
+            renderCommands();
+            initRadar();
+        };
+    </script>
+</body>
+</html>
